@@ -17,14 +17,14 @@ spec:
     spec:
       containers:
       - name: appidsample
-        image: us.icr.io/robobob/appidsample:1
+        image: us.icr.io/<registry name space>/appidsample:1
         imagePullPolicy: Always
         env:
         - name: APPID_SECRETS
           valueFrom:
             secretKeyRef:
               key: binding
-              name: binding-appid
+              name: <binding secret of appid service>
         ports:
         - containerPort: 3000
           protocol: TCP
