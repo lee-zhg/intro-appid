@@ -1,4 +1,4 @@
-# Secure Application Deployed to Kubernetes Cluster with App ID Service in IBM Cloud
+# Secure Application deployed to Kubernetes Cluster with App ID Service in IBM Cloud
 
 
 ## Introduction
