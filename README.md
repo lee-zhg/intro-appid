@@ -27,6 +27,8 @@ By binding your instance of App ID to your cluster, you can enforce protection f
 
 This repository includes a sample application and instructions that you can deploy the application to Kubernetes cluster in IBM Cloud and security it with App ID service.
 
+The instructions were adapted and extended based on repo https://github.ibm.com/robobob/appid-sample.
+
 
 ## Step 1 - Provision the AppID Service and Add Users
 
@@ -42,7 +44,7 @@ To provision an App ID service,
 
 1. Assign a `Service name`. All lower case in the `Service name` is recommended for consistentcy between this name and `Secure` name in Kubernete cluster.
 
-  > Note: Take a note of `Service name`. You'll need it later.
+  > Note: Take a note of `Service name`. You'll need it soon.
 
 1. Accept the the `resource group` or select a different one.
 
@@ -112,7 +114,21 @@ This step is not strictly neccessary to secure the application. However, the sam
     No resources found.
     ```
 
-1. Binding App ID to your Kubernetes cluster.
+1. Login to the registry service.
+
+    ```sh
+    ibmcloud cr login
+    ```
+
+. Optionally, you may add a new `name space` in registry to store your docker image if you need one.
+
+  	```
+	  $ ibmcloud  cr  namespace-add  appid_[your initial]
+
+  	$ export CRNAMESPACE=appid_[your initial]
+	  ```
+
+1. Bind App ID to your Kubernetes cluster.
 
     ```
     $ ibmcloud ks cluster-service-bind --cluster <your K8S cluster> --namespace default --service <AppIDServiceName>
@@ -125,13 +141,15 @@ This step is not strictly neccessary to secure the application. However, the sam
     
     Replace `<ClusterName>` with the name of the Kubernetes cluster where the application will run and replace `<AppIDServiceName>` with the name of your AppID service.
 
-1. Verify the binding. The command below should return a secret name `binding-<appidservicename>`.
+1. Verify the App ID binding. The command below should return a secret name `binding-<appidservicename>`.
 
     ```
     $ kubectl get secrets | grep binding
 
     binding-appid                  Opaque                                1      6d21h
     ```
+
+1. Take note of your scret name for App ID binding. You'll need it soon. In the above example, it is `binding-appid`. Yours will be slightly different.
 
   
 ## Step 4 - Build your Container Image
@@ -141,177 +159,225 @@ You need to build a container image for your application before deploying it to 
 1. Download this repo in your terminal window. You may also download the repo zipfile.
 
     ```
-    git clone https://github.ibm.com/lee-zhg/appid-intro
+    $ git clone https://github.com/lee-zhg/intro-appid
 
-    cd appid-intro
+    $ cd intro-appid
     ```
 
-After pulling this repository down into your environment, build the image directly into your IBM Cloud image repository:
+1. Build the docker image and store in your IBM Cloud image registry.
 
-```
- ibmcloud cr build -t us.icr.io/<namespace>/appidsample:1 .
-```
-Where `<namespace>` is one of your container registry namespaces (you many also need to update the registry location, depending on which region your registry is in).
+    ```
+    $ ibmcloud cr build -t us.icr.io/<namespace>/appidsample:1 .
+    ```
+    
+    Where `<namespace>` is one of your container registry namespaces (you many use a different registry location, depending on which region your registry is in).
 
-## Step 4 - Create certificates and secrets
-
-AppID only works on web applications locked down with SSL, so you will need to create certificates and a secret.  This repository contains two scripts, `cert.sh` and `secret.sh` (in that order) to help you with that.  
-
-When you create your certificates, make sure you use the fully qualified hostname that includes your ingress subdomain, as per the following example:
-
-```
-[root@jumpserver appid-sample]# ./cert.sh
-Generating a 2048 bit RSA private key
-................................................+++
-.....................+++
-writing new private key to 'appid-key.pem'
------
-You are about to be asked to enter information that will be incorporated
-into your certificate request.
-What you are about to enter is what is called a Distinguished Name or a DN.
-There are quite a few fields but you can leave some blank
-For some fields there will be a default value,
-If you enter '.', the field will be left blank.
------
-Country Name (2 letter code) [XX]:CA
-State or Province Name (full name) []:ON
-Locality Name (eg, city) [Default City]:TO
-Organization Name (eg, company) [Default Company Ltd]:IBM
-Organizational Unit Name (eg, section) []:Cloud
-Common Name (eg, your name or your server's hostname) []:appidsample.clustername.us-east.containers.mybluemix.net 
-Email Address []:
-[root@jumpserver appid-sample]#
-```
-
-You can find your ingress subdomain on your cluster overview page in IBM Cloud:
-
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid3.png)
 
 ## Step 5 - Deploy the application
 
-In the `yaml` subdirectory of this repository there is a deployment.yaml file.  Before you deploy the application with it, you will need to make two changes.
+In the `yaml` subdirectory of this repository, there is a deployment.yaml file.  Before you deploy the application with it, you will need to make two changes.
 
-On line 20, change the image namespace from `us.icr.io/<namespace>/appidsample:1` to whatever namespace you built the image to.
+1. In the terminal window, go to the directory where this repo was downloaded.
 
-On line 27, change `binding-appid` to the AppID secret name for you environment.
+1. Navigate to yaml/ subfolder.
 
-After you make these changes, deploy the application by typing `kubectl create -f ./deployment.yaml`
+1. Open file deployment.yaml in your favor file editor.
 
-Check to make sure the pod is up and running:
+  * Replace `<registry name space>` with your registry name space.
 
-```
-[root@jumpserver appid-sample]# kubectl get pods | grep appid
-appidsample-6c5c4f4d6f-vt42g                1/1     Running   0          32h
-[root@jumpserver appid-sample]#
-```
+  * Replace `<binding secret of appid service>` with your binding secret name.
+
+  * Save the changes.
+
+1. Deploy the sample application to your Kubernetes cluster.
+
+    ```
+    $ kubectl create -f ./deployment.yaml
+    ```
+
+1. Verify the deployment.
+
+    ```
+    $ kubectl get pods | grep appid
+
+    appidsample-6c5c4f4d6f-vt42g                1/1     Running   0          32h
+    ```
+
 
 ## Step 6 - Deploy the service
 
-In the `yaml` subdirectory, create the service with `kubectl create -f ./service.yaml`.  No changes to the yaml file is required.
+To create the required service for the sample application. No changes to the yaml file is necessary.
 
-When you check the service, you will actually see two services:
+1. In the `yaml` subdirectory, execute the command below to create the service 
 
-```
-[root@jumpserver appid-sample]# kubectl get services | grep appid
-appidsample-insecure            ClusterIP      172.21.39.185    <none>           3000/TCP                        41h
-appidsample-secure              ClusterIP      172.21.183.48    <none>           3000/TCP                        41h
-[root@jumpserver appid-sample]#
-```
+    ```
+    $ kubectl create -f ./service.yaml
+    ```
 
-## Step 7 - Deploy the ingress
+1. Verify the service. Two services should be created.
 
-Let's have a look at the `ingress.yaml` file in the `yaml` subdirectory:
+  * appidsample-secure
+  * appidsample-insecure
 
-```
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: appidsample
-  annotations:
-    ingress.bluemix.net/appid-auth: bindSecret=binding-appid namespace=default requestType=web serviceName=appidsample-secure
-    ingress.bluemix.net/redirect-to-https: "True"
-spec:
-  rules:
-  - host: appidsample.clustername.us-east.containers.mybluemix.net
-    http:
-      paths:
-      - backend:
-          serviceName: appidsample-secure
-          servicePort: 3000
-        path: /secure
-      - backend:
-          serviceName: appidsample-insecure
-          servicePort: 3000
-        path: /
-  tls:
-  - hosts:
-    - appidsample.clustername.us-east.containers.mybluemix.net
-    secretName: appidsampl
-```
+    ```
+    $ kubectl get services | grep appid
 
-The AppID ingress annotation will intercept all traffic heading to the `appidsample-secure` service, defined as path `/secure`.  All other traffic will be serviced by the `appidsample-insecure` service.  That's why we defined two services.
-
-Before deploying, change lines 10 and 23 to your fully qualified domain name, which must be the same name you used to create the certificate during step 4
-
-After updating the file, deploy the ingress with `kubectl create -f ./ingress.yaml`
-
-Checking your ingress, you should see something like the following:
-
-```
-[root@jumpserver appid-sample]# kubectl get ingress | grep appid
-appidsample        appidsample.clustername.us-east.containers.mybluemix.net    169.48.5.14   80, 443   41h
-[root@jumpserver appid-sample]#
-```
-
-## Step 8 - Add the Callback URL to AppID
-
-You need to register your application with your AppID instance.  You do this by adding a unique IKS URL to your AppID config.
-
-Go back to your AppID instance and select Manage Authentication-->Authentication Settings:
-
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid6.png)
+    appidsample-insecure            ClusterIP      172.21.39.185    <none>           3000/TCP                        41h
+    appidsample-secure              ClusterIP      172.21.183.48    <none>           3000/TCP                        41h
+    ```
 
 
-Add the following web direct URL to the configuration, substituting in your fully qualfied hostname:
+## Step 7 - Determine hostname for your sample application
 
-```
-https://appidsample.clustername.us-east.containers.mybluemix.nea/secure/appid_callback 
-```
+When deploying the `Ingress` of your Kubernetes cluster in the next section, you need `fully qualified hostname` where your sample application will run.
 
-## Step 9 - Test the application
+To determine the `hostname`,
 
-At this point you should be able to surf to the application using the ingress host name:
+1. Login to IBM Cloud.
 
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid4.png)
+1. Navigate to `https://cloud.ibm.com/kubernetes/clusters`.
 
-When you press the `Login` button, you should be redirected to the AppID login page.  After providing your credentials, you should be redirected back to the application, with your user information from AppID dumped to the screen:
+1. Select your Kubernete cluster.
 
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid5.png)
+1. `Ingress subdomain` locates on the `Overview` tab.
 
-Pressing the `Logout` button will log you out of the service.
+    ![alt text](images/find_k8s_ingress_subdomain.png)
+
+    > Note: `Ingress subdomain` can be very long. For example,  `lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
+
+1. The `hostname` is the combination of string 
+
+    * `appidsample.`
+    * `Ingress subdomain`
+
+    For example, `appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
 
 
-## Notes
+## Step 8 - Deploy the ingress
+
+File `ingress.yaml` is provided in the `yaml` subdirectory. You can use the file to configure the `Ingress` of your Kubernetes cluster. The AppID ingress annotation will intercept all traffic heading to the `appidsample-secure` service, defined as path `/secure`.  All other traffic will be served by the `appidsample-insecure` service.  If you recall, you defined two services in the previous step.
+
+You need to modify `ingress.yaml` file before deploying the `Ingress`.
+
+1. Open `ingress.yaml` file in a file editor.
+
+    ```
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: appidsample
+      annotations:
+        ingress.bluemix.net/appid-auth: bindSecret=<binding-appid-secret> namespace=default requestType=web     serviceName=appidsample-secure
+        ingress.bluemix.net/redirect-to-https: "True"
+    spec:
+      rules:
+      - host: <hostname>
+        http:
+          paths:
+          - backend:
+              serviceName: appidsample-secure
+              servicePort: 3000
+            path: /secure
+          - backend:
+              serviceName: appidsample-insecure
+              servicePort: 3000
+            path: /
+      tls:
+      - hosts:
+        - <hostname>
+          secretName: appidsample
+    ```
+
+1. Replace `<binding-appid-secret>` with the secret name of your App ID binding. If you forgot writting down the secret name, run command `kubectl get secrets | grep binding` in terminal window.
+
+1. Replace `<hostname>` with the hostname value that you identied in the previous step.
+
+1. Save the changes.
+
+1. Deploy the ingress.
+
+    ```
+    $ kubectl create -f ./ingress.yaml
+
+    ingress.extensions/appidsample created
+    ```
+
+1. Verify the `Ingress` deployment.
+
+    ```
+    $ kubectl get ingress | grep appid
+
+    appidsample        appidsample.clustername.us-east.containers.mybluemix.net    169.48.5.14   80, 443   41h
+    ```
+
+
+## Step 9 - Add the Callback URL to App ID Service
+
+To secure your sample application with App ID service, you need to register your sample application with your App ID instance. You do this by adding a unique IKS URL to your App ID configuration.
+
+1. Go back to your App ID service instance in IBM Cloud.
+
+1. Navigate to `Manage Authentication` --> `Authentication Settings`.
+
+    ![alt text](images/appid6.png)
+
+1. Your unique `Callback URL` is the combination of
+
+    * String `https//`
+    * `hostname` identified in the previous steps.
+    * String `/secure/appid_callback`
+
+    For example, `https://appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud/secure/appid_callback`.
+
+1. Enter your `Callback URL` in the `Add web redirect URLs` field.
+
+1. Click `+` icon at the end of the line.
+
+
+## Step 10 - Test the sample application
+
+Your sample application is deployed in your Kubernetes cluster in IBM Cloud and secured by your App ID service instance.
+
+1. Access your sample application by entering `hostname` identified in previous steps in a browser. For example, `appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
+
+    > Note: You can't test this sample application in `Chrome` browser.
+
+1. The sample application home page is loaded. There is a `Login` button at the top-right corner.
+
+    ![alt text](images/appid4.png)
+
+1. Click the `Login` button, you should be redirected to the AppID login page.  
+
+    ![alt text](images/appid_login.png)
+
+1. After providing your credentials, you should be redirected back to the application, with your user information from AppID dumped to the screen.
+
+    ![alt text](images/appid5.png)
+
+1. Pressing the `Logout` button will log you out of the service.
+
+
+## Additioal Notes on the Source Code
 
 If you take a look at the server code, you will see that all secure operations hang off the `/secure` URL:
 
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid7.png)
+![alt text](images/appid7.png)
 
 Everything hanging off `/secure` will be intercepted by AppID and checked to see if you are logged in and have access to the service.  The resulting call on the server side will contain an `Authorization` header in the request bearing the identity token of the logged in user.  The above sample code uses that token to retreive the client details from AppID.
 
 To log out, IKS also supports an AppID logout URL. However, it always forces a redirect back to the AppID login page.  To avoid this, I added a server side logout function to remove the AppID cookies from the browser:
 
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid8.png)
+![alt text](images/appid8.png)
 
 On the client side, the Javascript to perform logout looks like this:
 
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid9.png)
+![alt text](images/appid9.png)
 
 Note the code comments.  If you have just enabled cloud directory, then you are fine.  However, if you have enabled a SAML provider and want to ensure your credentials are cleared there as well, you need to redirect the browser to the supplied `logout.html`.
 
 This file uses a hidden frame to call the SAML provider secretly to remove your credentials:
 
-![alt text](https://github.ibm.com/robobob/appid-sample/blob/master/images/appid10.png)
+![alt text](images/appid10.png)
 
 You will need to change the URL on line 52 to the correct URL for your SAML provider.  The IBM SAML providers can be found here:
 
