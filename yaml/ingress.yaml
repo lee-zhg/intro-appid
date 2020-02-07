@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: appidsample
   annotations:
-    ingress.bluemix.net/appid-auth: bindSecret=binding-appid-lz namespace=default requestType=web serviceName=appidsample-secure
+    ingress.bluemix.net/appid-auth: bindSecret=<binding-appid-secret> namespace=default requestType=web serviceName=appidsample-secure
     ingress.bluemix.net/redirect-to-https: "True"
 spec:
   rules:
@@ -20,6 +20,6 @@ spec:
         path: /
   tls:
   - hosts:
-    - appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud
+    - <hostname>
     secretName: appidsample
 
