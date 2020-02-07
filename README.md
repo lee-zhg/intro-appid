@@ -560,7 +560,7 @@ As you have tested before switching to `IBM Cloud Identity SaaS` for your user r
 1. Pressing the `Logout` button will log you out of the service.
 
 
-## - Setting up IBM Cloud App ID with your Azure Active Directory
+## Setting up IBM Cloud App ID with your Azure Active Directory
 
 Information on how to use `Azure Active Directory` as user repository is available at https://www.ibm.com/cloud/blog/setting-ibm-cloud-app-id-azure-active-directory
 
