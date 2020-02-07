@@ -7,6 +7,8 @@ Application security can be incredibly complicated. For most developers, it's on
 
 When deploying your application, you can consistently enforce policy-driven security by using the Ingress networking capability in IBM Cloud™ Kubernetes Service or OpenShift. With this approach, you can enable authorization and authentication for all of the applications in your cluster at the same time, **without ever changing your app code**!
 
+IBM Cloud App ID is a cloud service that allows developers to easily add authentication and authorization capabilities to their applications while all the operational aspects of the service are handled by the IBM Cloud Platform. App ID is intended for developers that don't need or want to know anything about various security protocols. 
+
 The following diagram to see the authentication flow.
 
   ![alt text](images/appid_architecture01.png)
@@ -340,7 +342,7 @@ Your sample application is deployed in your Kubernetes cluster in IBM Cloud and 
 
 1. Access your sample application by entering `hostname` identified in previous steps in a browser. For example, `appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
 
-    > Note: You can't test this sample application in `Chrome` browser.
+    > Note: You may not be able to test this sample application in `Chrome` browser.
 
 1. The sample application home page is loaded. There is a `Login` button at the top-right corner.
 
@@ -351,6 +353,207 @@ Your sample application is deployed in your Kubernetes cluster in IBM Cloud and 
     ![alt text](images/appid_login.png)
 
 1. After providing your credentials, you should be redirected back to the application, with your user information from AppID dumped to the screen.
+
+    ![alt text](images/appid5.png)
+
+1. Pressing the `Logout` button will log you out of the service.
+
+
+## Step 11 - IBM Cloud Identity
+
+IBM `Cloud Identity` provides identity-as-a-service for your users, including SSO, multifactor authentication, and user lifecycle management.
+
+In the previous sections, you used the internal `Cloud Directory` included within the `IBM Cloud App ID` as a user repository. The `IBM Cloud App ID` authenticates your sample application based on user information stored in internal the `Cloud Directory`.
+
+For the remaining sections of this repo, you are going to store user login information in `IBM Cloud Identity`. The `IBM Cloud App ID` will authenticate your sample application based on user information stored in `IBM Cloud Identity` system.
+
+If you don't have access to a `IBM Cloud Identity` system, you may sign up a free trial.
+
+1. Navigate to `IBM Marketplace` at https://www.ibm.com/us-en/marketplace.
+
+1. Search for `Cloud Identity Connect`.
+
+1. `IBM Cloud Identity - Overview - United States` (https://www.ibm.com/us-en/marketplace/cloud-identity?mhsrc=ibmsearch_a&mhq=Cloud%20Identity%20Connect) should appear at the top of the search result.
+
+1. Click the `IBM Cloud Identity - Overview - United States` link to visit the `IBM Cloud Identity Overview` homepage.
+
+    ![alt text](images/cloud_identity_overview.png)
+
+1. Click the `Try free edition`.
+
+1. Follow the online instruction to sign up a free trial of `IBM Cloud Identity`.
+
+1. The Screen shot below is the `IBM Cloud Identity` dashboard.
+
+    ![alt text](images/cloud_identity_dashboard.png)
+
+
+## Step 12 - Add Users to IBM Cloud Identity User Repository
+
+After you completed the signing up a free trial of `IBM Cloud Identity`, you can create testing user(s) in its `user repository`.
+
+1. Click the main manu (three horizental lines) at the top-left corner and select `Users & groups`.
+
+1. Click `Add user` button.
+
+    ![alt text](images/cloud_identity_newuser01.png)
+
+1. Enter required information for the new user.
+
+    * `Identity Source`: `Cloud Directory`
+    * `User name`: `a_user01`
+    * `Given name`: `a_user01`
+    * `Surname`: `Smith`
+    * `Email`: <your email>
+
+1. Click `Save`.s
+
+1. The new user appears on the user list.
+
+1. Select the `Action menu` (three dots) of the new user `a_user01` and choose `Reset password`.
+
+1. Confirm the `Reset password` action when prompted. This should trigger an out-going email containing username, temporary password and a link to access your `IBM Cloud Identity` system.
+
+1. Login to your email account and open the email.
+
+1. Click the `IBM Cloud Identity` link.
+
+1. After login with the temporary password, you should be prompted to enter new password twice.
+
+1. The new user is ready by now.
+
+    ![alt text](images/cloud_identity_newuser02.png)
+
+
+## Step 13 - Download SAML Metadata File from IBM App ID
+
+Now, you have an existing user repository in `IBM Cloud Identity`, and you want to authenticate your application via `IBM App ID`. This offers the integrated IBM Cloud experience.
+
+You can set up App ID to use your enterprise identity provider, such as `IBM Cloud Identity` and `Microsoft Active Directory`, by using SAML2.0. By configuring App ID to work with your SAML IdP, your users are able to sign in by using enterprise credentials that they already know. To learn more about SAML 2.0 and see specific SAML identity provider examples. see [docs](https://cloud.ibm.com/docs/services/appid?topic=appid-enterprise#enterprise).
+
+1. Navigate to your `IBM App ID` dashboard.
+
+    ![alt text](images/cloud_identity_dashboard.png)
+
+1. Expand the `Identity Providers` in the left pane and select `SAML 2.0 Federation`.
+
+    ![alt text](images/appid_saml01.png)
+
+1. Specify the name you'd like to use for the provider. For example, `IBM Cloud Identity`.
+
+1. Click `Download SAML Metadata file` button.
+
+1. Open the downloaded file and take note of the following information.
+
+    * the `entityID` property under **EntityDescriptor** element.
+    * the `Location` property under **AssertionConsumerService** element.
+
+    ```
+    <?xml version="1.0"?>
+    <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="urn:ibm:cloud:services:appid:8ba69d56-33f4-430a-8db6-a6bf090f1cf7">
+        <SPSSODescriptor WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</NameIDFormat>
+            <AssertionConsumerService index="1" isDefault="true" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://us-south.appid.cloud.ibm.com/saml2/v1/8ba69d56-33f4-430a-8db6-a6bf090f1cf7/login-acs"/>
+        </SPSSODescriptor>
+    </EntityDescriptor>
+    ```
+
+
+## Step 14 - Configure IBM Cloud Identity
+
+To configure your `IBM Cloud Identity` system as the user repository of `IBM App ID`,
+
+1. Navigate  to the `IBM Cloud Identity` dashboard.
+
+1. Make sure your Cloud Identity instance has at least one user you'll be able to sign in with.
+
+1. Click the main menu (three vertical lines at the top-left corner) and select `Applications`.
+
+1. Click `Add application`.
+
+1. Select `Custom Application` type.
+
+1. Click `Add application` button at the bottom-right corner.
+
+    ![alt text](images/clooud_identity_add_app01.png)
+
+1. In the `General` tab, enter a name. For Example, `IBM App ID`.
+
+1. Enter `IBM` in the `Company Name` field.
+
+    ![alt text](images/clooud_identity_add_app02.png)
+
+1. Go to the `Sign-on` tab.
+
+1. Copy the entityID value from the `SAML Metadata file` in the previous section to the `Provider ID` filed.
+
+1. Copy the `Location` value from the `SAML Metadata file` in the previous section to the `Assertion Consumer Service URL (HTTP-POST)` field.
+
+1. Copy the `Location` value from the `SAML Metadata file` in the previous section to the `Server Provider SSO URL` field. Scroll down to locate the `Server Provider SSO URL` field.
+
+    ![alt text](images/clooud_identity_add_app03.png)
+
+1. Save your configuration.
+
+1. Select checkbox of `All users are entitled to this application`.
+
+    ![alt text](images/clooud_identity_add_app04.png)
+
+1. Save your configuration again.
+
+1. Switch back to the Sign-on tab. There are information on the right side of the screen.
+
+    ![alt text](images/clooud_identity_add_app05.png)
+
+1. In the next section, you will need the following information.
+
+    * the `Provider ID` value on the right side of the screen.
+    * the `Login URL` on the right side of the screen.
+    * the `Signing Certificate` on the right side of the screen.
+
+
+## - Step 15 Configure IBM App ID
+
+Complete the steps below to configure `IBM App ID`.
+
+1. Navigate to `IBM App ID` dashboard.
+
+1. Expand the `Identity Providers` in the left pane and select `SAML 2.0 Federation`.
+
+    ![alt text](images/clooud_identity_add_app06.png)
+
+1. Copy the `Provider ID` value of `IBM Cloud Identity` (gathered at the end of the previous section) to the `entityID` field in the `IBM App ID` window. The `entityID` field is under `2. Provide metadata from SAML IdP` section on the right.
+
+1. Copy the `Login URL` value of `IBM Cloud Identity` (gathered at the end of the previous section) to the `Sign-in` URL box in the `IBM App ID` window. The `Sign-in` field is under `2. Provide metadata from SAML IdP` section on the right.
+
+1. Copy the `Signing Certificate` value of `IBM Cloud Identity` (gathered at the end of the previous section) to the `Primary Certificate` box in the `IBM App ID` window. The `Sign-in` field is under `2. Provide metadata from SAML IdP` section on the right.
+
+    ![alt text](images/clooud_identity_add_app07.png)
+
+1. Save your changes.
+
+1. Click the `Test` button to see everything is working together.
+
+    ![alt text](images/clooud_identity_add_app08.png)
+
+
+## - Verification
+
+As you have tested before switching to `IBM Cloud Identity SaaS` for your user repository, your sample application was deployed to your Kubernetes cluster in IBM Cloud. Now, it's secured by your `IBM App ID` service and your `IBM Cloud Identity SaaS` instance.
+
+1. Access your sample application by entering `hostname` identified in previous steps in a browser. For example, `appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
+
+    > Note: You may not be able to test this sample application in `Chrome` browser.
+
+1. The sample application home page is loaded. There is a `Login` button at the top-right corner.
+
+    ![alt text](images/appid4.png)
+
+1. Click the `Login` button, you should be redirected to the AppID login page.  
+
+    ![alt text](images/appid_login.png)
+
+1. After providing your credentials from your `IBM Cloud Identity SaaS`, you should be redirected back to the application, with your user information from `IBM Cloud Identity SaaS` via `IBM AppID` dumped to the screen.
 
     ![alt text](images/appid5.png)
 
