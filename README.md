@@ -537,7 +537,7 @@ Complete the steps below to configure `IBM App ID`.
     ![alt text](images/clooud_identity_add_app08.png)
 
 
-## - Verification
+## - Step 16 Verification
 
 As you have tested before switching to `IBM Cloud Identity SaaS` for your user repository, your sample application was deployed to your Kubernetes cluster in IBM Cloud. Now, it's secured by your `IBM App ID` service and your `IBM Cloud Identity SaaS` instance.
 
@@ -558,6 +558,11 @@ As you have tested before switching to `IBM Cloud Identity SaaS` for your user r
     ![alt text](images/appid5.png)
 
 1. Pressing the `Logout` button will log you out of the service.
+
+
+## - Setting up IBM Cloud App ID with your Azure Active Directory
+
+Information on how to use `Azure Active Directory` as user repository is available at https://www.ibm.com/cloud/blog/setting-ibm-cloud-app-id-azure-active-directory
 
 
 ## Additioal Notes on the Source Code
