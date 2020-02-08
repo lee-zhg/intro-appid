@@ -7,7 +7,7 @@ metadata:
     ingress.bluemix.net/redirect-to-https: "True"
 spec:
   rules:
-  - host: appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud
+  - host: appidsample.<your ingress subdomain>
     http:
       paths:
       - backend:
@@ -20,6 +20,6 @@ spec:
         path: /
   tls:
   - hosts:
-    - <hostname>
-    secretName: appidsample
+    - appidsample.<your ingress subdomain>
+    secretName: <your ingress secret>
 
