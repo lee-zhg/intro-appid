@@ -231,23 +231,28 @@ To create the required service for the sample application. No changes to the yam
 
 ## Step 7 - Determine hostname for your sample application
 
-When deploying the `Ingress` of your Kubernetes cluster in the next section, you need `fully qualified hostname` where your sample application will run.
+AppID only works on web applications locked down with SSL and a fully qualified domain name. IKS and OpenShift clusters on IBM Cloud have a default wildcard certificate and secret you can use, as well as an Ingress subdomain to add to your application host name.
 
-To determine the `hostname`,
+* If you are running an IKS cluster, type the following CLI command:
 
-1. Login to IBM Cloud.
+    ```
+    ibmcloud ks cluster get --cluster <clustername> | grep Ingress
+    ```
 
-1. Navigate to `https://cloud.ibm.com/kubernetes/clusters`.
+* Alternatively, if you are running an OpenShift cluster, type the following:
 
-1. Select your Kubernete cluster.
+    ```
+    ibmcloud oc cluster get --cluster <clustername> | grep Ingress
+    ```
 
-1. `Ingress subdomain` locates on the `Overview` tab.
+*   In both cases you will see something like the following:
 
-    ![alt text](images/find_k8s_ingress_subdomain.png)
+    ```
+    Ingress Subdomain:              <YOUR INGRESS SUBDOMAIN>
+    Ingress Secret:                 <YOUR INGRESS SECRET>
+    ```
 
-    > Note: `Ingress subdomain` can be very long. For example,  `lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
-
-1. The `hostname` is the combination of string 
+* The `hostname` is the combination of string 
 
     * `appidsample.`
     * `Ingress subdomain`
