@@ -32,7 +32,7 @@ This repository includes a sample application and instructions that you can depl
 The instructions were adapted and extended based on repo https://github.ibm.com/robobob/appid-sample.
 
 
-## Step 1 - Provision the AppID Service and Add Users
+## Step 1 - Provision the IBM App  ID Service
 
 To provision an App ID service,
 
@@ -53,7 +53,7 @@ To provision an App ID service,
 1. Click `Create`.
 
 
-## Step 2 - Configure the AppID Service and Add Users
+## Step 2 - Configure the IBM App ID Service and Add Users
 
 Once provisioned, initiate the service and enable the cloud directory.
 
@@ -182,6 +182,10 @@ In the `yaml` subdirectory of this repository, there is a deployment.yaml file. 
 1. In the terminal window, go to the directory where this repo was downloaded.
 
 1. Navigate to yaml/ subfolder.
+
+    ```
+    cd yaml
+    ```
 
 1. Open file deployment.yaml in your favor file editor.
 
@@ -332,7 +336,7 @@ To secure your sample application with App ID service, you need to register your
 
 1. Your unique `Callback URL` is the combination of
 
-    * String `https//`
+    * String `https://`
     * `hostname` identified in the previous steps.
     * String `/secure/appid_callback`
 
