@@ -272,32 +272,34 @@ You need to modify `ingress.yaml` file before deploying the `Ingress`.
     apiVersion: extensions/v1beta1
     kind: Ingress
     metadata:
-      name: appidsample
-      annotations:
-        ingress.bluemix.net/appid-auth: bindSecret=<binding-appid-secret> namespace=default requestType=web     serviceName=appidsample-secure
-        ingress.bluemix.net/redirect-to-https: "True"
+        name: appidsample
+        annotations:
+            ingress.bluemix.net/appid-auth: bindSecret=<binding-appid-secret> namespace=default requestType=web serviceName=appidsample-secure
+            ingress.bluemix.net/redirect-to-https: "True"
     spec:
-      rules:
-      - host: <hostname>
-        http:
-          paths:
-          - backend:
-              serviceName: appidsample-secure
-              servicePort: 3000
-            path: /secure
-          - backend:
-              serviceName: appidsample-insecure
-              servicePort: 3000
-            path: /
-      tls:
-      - hosts:
-        - <hostname>
-          secretName: appidsample
+        rules:
+        - host: appidsample.<your ingress subdomain>
+            http:
+                paths:
+                - backend:
+                    serviceName: appidsample-secure
+                    servicePort: 3000
+                path: /secure
+                - backend:
+                    serviceName: appidsample-insecure
+                    servicePort: 3000
+                path: /
+        tls:
+        - hosts:
+            - appidsample.<your ingress subdomain>
+            secretName: <your ingress secret>
     ```
 
 1. Replace `<binding-appid-secret>` with the secret name of your App ID binding. If you forgot writting down the secret name, run command `kubectl get secrets | grep binding` in terminal window.
 
-1. Replace `<hostname>` with the hostname value that you identied in the previous step.
+1. Replace `<your ingress subdomain>` with the `<YOUR INGRESS SUBDOMAIN>` value that you identied in the previous step.
+
+1. Replace `<your ingress secret>` with the `<YOUR INGRESS SECRET>` value that you identied in the previous step.
 
 1. Save the changes.
 
