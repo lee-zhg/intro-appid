@@ -169,7 +169,7 @@ You need to build a container image for your application before deploying it to 
 1. Build the docker image and store in your IBM Cloud image registry.
 
     ```
-    $ ibmcloud cr build -t us.icr.io/<namespace>/appidsample:1 .
+    $ ibmcloud cr build -t us.icr.io/$CRNAMESPACE/appidsample:1 .
     ```
     
     Where `<namespace>` is one of your container registry namespaces (you many use a different registry location, depending on which region your registry is in).
@@ -189,11 +189,11 @@ In the `yaml` subdirectory of this repository, there is a deployment.yaml file. 
 
 1. Open file deployment.yaml in your favor file editor.
 
-  * Replace `<registry name space>` with your registry name space.
+    * Replace `<registry name space>` with your registry name space. Run command `echo $CRNAMESPACE` to retrieve `your registry name space` if necessary.
 
-  * Replace `<binding secret of appid service>` with your binding secret name.
+    * Replace `<binding secret of appid service>` with your binding secret name. Run command `kubectl get secrets | grep binding`  to retrieve `your binding secret name` if  necessary.
 
-  * Save the changes.
+    * Save the changes.
 
 1. Deploy the sample application to your Kubernetes cluster.
 
@@ -256,7 +256,7 @@ AppID only works on web applications locked down with SSL and a fully qualified 
     Ingress Secret:                 <YOUR INGRESS SECRET>
     ```
 
-* The `hostname` is the combination of string 
+* The `hostname` is the combination of the  following 2 strings 
 
     * `appidsample.`
     * `Ingress subdomain`
@@ -301,7 +301,7 @@ You need to modify `ingress.yaml` file before deploying the `Ingress`.
 
 1. Replace `<binding-appid-secret>` with the secret name of your App ID binding. If you forgot writting down the secret name, run command `kubectl get secrets | grep binding` in terminal window.
 
-1. Replace `<your ingress subdomain>` with the `<YOUR INGRESS SUBDOMAIN>` value that you identied in the previous step.
+1. Replace `<your ingress subdomain>` with the `<YOUR INGRESS SUBDOMAIN>` value that you identied in the previous step. Note, you need to replace the `<your ingress subdomain>` 2 times.
 
 1. Replace `<your ingress secret>` with the `<YOUR INGRESS SECRET>` value that you identied in the previous step.
 
@@ -334,7 +334,7 @@ To secure your sample application with App ID service, you need to register your
 
     ![alt text](images/appid6.png)
 
-1. Your unique `Callback URL` is the combination of
+1. Your unique `Callback URL` is the combination of the following 3 strings
 
     * String `https://`
     * `hostname` identified in the previous steps.
@@ -417,7 +417,7 @@ After you completed the signing up a free trial of `IBM Cloud Identity`, you can
     * `Surname`: `Smith`
     * `Email`: <your email>
 
-1. Click `Save`.s
+1. Click `Save`.
 
 1. The new user appears on the user list.
 
@@ -506,7 +506,7 @@ To configure your `IBM Cloud Identity` system as the user repository of `IBM App
 
 1. Save your configuration.
 
-1. Select checkbox of `All users are entitled to this application`.
+1. Select checkbox of `All users are entitled to this application`. When you modify the configuration after the inital setup, this field is on the `Entitlements` tab.
 
     ![alt text](images/clooud_identity_add_app04.png)
 
@@ -548,9 +548,24 @@ Complete the steps below to configure `IBM App ID`.
     ![alt text](images/clooud_identity_add_app08.png)
 
 
-## - Step 16 Verification
+## - Step 16 Turn on SAML 2.0 Federation in IBM App ID
 
-As you have tested before switching to `IBM Cloud Identity SaaS` for your user repository, your sample application was deployed to your Kubernetes cluster in IBM Cloud. Now, it's secured by your `IBM App ID` service and your `IBM Cloud Identity SaaS` instance.
+To secure your sample application with user information stored in IBM Cloud Identity, you must turn on `SAML 2.0 Federation` feature in IBM App ID.
+
+1. Select `Manage Authentication` in the left pane.
+
+1. Select `Authentication Settings` tab on the right.
+
+1. Disable the `Cloud Directory` feature.
+
+1.  Enable the `SAML 2.0 Federation` feature.
+
+    ![alt text](images/appid11.png)
+
+
+## - Step 17 Verification
+
+When you have tested your sample application before switching to `IBM Cloud Identity` for your user repository, your sample application had been deployed to your Kubernetes cluster in IBM Cloud. After you configured `SAML 2.0 Federation`, your sample application is secured by your `IBM App ID` service and your `IBM Cloud Identity`.
 
 1. Access your sample application by entering `hostname` identified in previous steps in a browser. For example, `appidsample.lz-mycluster-paid-a08dc5e3ad7d218fff67b7b2d9460c79-0000.us-south.containers.appdomain.cloud`.
 
@@ -562,9 +577,13 @@ As you have tested before switching to `IBM Cloud Identity SaaS` for your user r
 
 1. Click the `Login` button, you should be redirected to the AppID login page.  
 
-    ![alt text](images/appid_login.png)
+    ![alt text](images/appid_login02.png)
 
-1. After providing your credentials from your `IBM Cloud Identity SaaS`, you should be redirected back to the application, with your user information from `IBM Cloud Identity SaaS` via `IBM AppID` dumped to the screen.
+1. Click `Login with IBM Cloud Identity`  button.
+
+    ![alt text](images/appid_login03.png)
+
+1. After providing your credentials from your `IBM Cloud Identity`, you should be redirected back to the application, with your user information from `IBM Cloud Identity` via `IBM AppID` dumped to the screen.
 
     ![alt text](images/appid5.png)
 
